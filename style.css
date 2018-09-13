@@ -1,0 +1,23 @@
+h2, .settingsDiv {
+    text-align: center;
+}
+
+.cardRow {
+	display: block;
+	text-align: center;
+}
+
+#gameArea {
+    margin: 20px;
+}
+
+img {
+	width: 125px;
+	height: 180px;
+	margin: 5px;
+	opacity: 1.0;
+}
+
+img[src*="face_down"]:hover, img.selected {
+    opacity: 0.5;
+}
