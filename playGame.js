@@ -35,27 +35,26 @@ $(document).ready(function(){
 	    $("#gameArea").empty();
 	    
 	    // send ajax GET request to start the game
-	    $.get("/start", "n=" + n, function(data){
-	        var imgDiv = "";
-	        var items = [];
-	        var imgId = "";
-	        
-	        // generate grid of face down cards
-	        for (let i = 0; i < n; i++){
-	            for (let j = 0; j < n; j++){
-	               // create unique id for image based on poistion
+	    $.post("/startGame", JSON.stringify({"n" : n}), function(data){
+            var imgDiv = "";
+            var items = [];
+            var imgId = "";
+            
+            // generate grid of face down cards
+            for (let i = 0; i < n; i++){
+                for (let j = 0; j < n; j++){
+                   // create unique id for image based on poistion
                    imgId = `r${i}c${j}`;
                    items.push('<img src="/images/' + FACE_DOWN_IMAGE + 
                                 '" class="unmatched" id="' + imgId + '">'); 
-	            }
-	            // add to div
-	            imgDiv = '<div class="cardRow">' + items.join("") + "</div>";
-	            $("#gameArea").append(imgDiv);
-	            imgDiv = "";
-	            items = [];
-	        }
+                }
+                // add to div
+                imgDiv = '<div class="cardRow">' + items.join("") + "</div>";
+                $("#gameArea").append(imgDiv);
+                imgDiv = "";
+                items = [];
+            }
 	    });
-
     });
     
     // persistent variables
@@ -96,7 +95,7 @@ $(document).ready(function(){
                 $(this).attr("class", "selected");
                 
                 // send ajax GET request to check if cards match
-                $.getJSON("/checkMatch", cardsObj, function(data){
+                $.getJSON("/getResult", cardsObj, function(data){
                     // display the cards faceup
                     var card1Id = "#r" + cardsObj.x1 + "c" + cardsObj.y1;
                     var card2Id = "#r" + cardsObj.x2 + "c" + cardsObj.y2;

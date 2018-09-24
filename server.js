@@ -2,6 +2,7 @@
 const url = require("url");
 const http = require("http");
 const fs = require("fs");
+const bodyParser = require('body-parser');
 
 const Game = require('./gameLogic/game.js');
 
@@ -12,12 +13,12 @@ const port = 3000;
 var game = new Game();
     
 const server = http.createServer((req, res) => {
-    // using GET for starting game
+    // parse the request url
+    var urlObj = url.parse(req.url, true);
+    console.log(urlObj);
+
+    // using GET requests
     if (req.method == "GET"){
-        // parse the request url
-        var urlObj = url.parse(req.url, true);
-        console.log(urlObj);
-        
         // request to access page, return start page html
         if (urlObj.pathname == "/"){
             // read the file content from file system
@@ -34,29 +35,8 @@ const server = http.createServer((req, res) => {
                res.end();
             });  
         }
-        // request to start new game, create a new game
-        else if (urlObj.pathname == "/start"){
-            var n = parseInt(urlObj.query.n);
-            var deckJSON = game.startNew(n);
-            
-            //res.writeHead(200, {"Content-Type": "application/json"});
-            //res.end(deckJSON);
-
-            if (deckJSON == {}) {
-               console.log(err);
-               res.writeHead(404, {"Content-Type": "text/html"});
-            }
-            else{	
-               res.writeHead(200, {"Content-Type": "text/html"});		
-            }
-            res.end();
-            
-            //console.log(deckJSON);
-            console.log(game.deck.printCardDeck());
-            
-        }
         // request to check 2 cards, return results of check as JSON
-        else if (urlObj.pathname == "/checkMatch"){
+        else if (urlObj.pathname == "/getResult"){
             var x1 = parseInt(urlObj.query.x1);
             var y1 = parseInt(urlObj.query.y1);
             var x2 = parseInt(urlObj.query.x2);
@@ -89,7 +69,8 @@ const server = http.createServer((req, res) => {
                if (err) {
                   console.log(err);
                   res.writeHead(404, {"Content-Type": "text/html"});
-               }else {	
+               }
+               else {	
                   res.writeHead(200, {"Content-Type": contentType});	
                   // write the content of the file to response body
                   res.write(data);		
@@ -99,13 +80,40 @@ const server = http.createServer((req, res) => {
             }); 
         }     
     }
+    // post request to start game
+    else if (req.method == "POST"){
+        // request to start new game, create a new game
+        if (urlObj.pathname == "/startGame"){
+            var body = [];
+            req.on('error', (err) => {
+              console.error(err);
+            }).on('data', (chunk) => {
+              body.push(chunk);
+            }).on('end', () => {
+              body = JSON.parse(Buffer.concat(body).toString());
+              // At this point, we have the headers, method, url and body, and can now
+              // do whatever we need to in order to respond to this request.
+            
+              var n = body.n;
+              var deckJSON = game.startNew(n);
+
+              if (deckJSON == {}) {
+                 console.log(err);
+                 res.writeHead(404, {"Content-Type": "text/html"});
+              }
+              else{ 
+                 res.writeHead(200, {"Content-Type": "text/html"});   
+              }
+              res.end();
+              
+              //console.log(deckJSON);
+              console.log(game.deck.printCardDeck());
+            });
+        }
+    }
     else {
         console.log("Unexpected request type: " + req.method);
     }
-
-    //res.statusCode = 200;
-    //res.setHeader('Content-Type', 'text/plain');
-    //res.end('Hello World\n');
 });
 
 server.listen(port, hostname, () => {
